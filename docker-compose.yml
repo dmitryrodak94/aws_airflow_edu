@@ -75,11 +75,11 @@ x-airflow-common:
     # The following line can be used to set a custom config file, stored in the local config folder
     AIRFLOW_CONFIG: '/opt/airflow/config/airflow.cfg'
   volumes:
-    - c:/users/admin/desktop/motorsport_airflow_2/dags:/opt/airflow/dags
-    - c:/users/admin/desktop/motorsport_airflow_2/logs:/opt/airflow/logs
-    - c:/users/admin/desktop/motorsport_airflow_2/config:/opt/airflow/config
-    - c:/users/admin/desktop/motorsport_airflow_2/plugins:/opt/airflow/plugins
-    - c:/users/admin/desktop/motorsport_airflow_2/motorsport_etl_framework:/opt/airflow/motorsport_etl_framework
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./config:/opt/airflow/config
+    - ./plugins:/opt/airflow/plugins
+    - ./motorsport_etl_framework:/opt/airflow/motorsport_etl_framework
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -92,7 +92,7 @@ services:
   dbt:
     build: .
     volumes: 
-     - c:/users/admin/desktop/motorsport_airflow_2/dbt:/dbt
+     - ./dbt:/dbt
     #  - ./profiles.yml:/root/.dbt/profiles.yml
     restart: unless-stopped
     ports:
@@ -104,7 +104,7 @@ services:
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     volumes:
-      - c:/users/admin/desktop/motorsport_airflow_2/postgres-db-volume:/var/lib/postgresql/data
+      - ./postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 10s
