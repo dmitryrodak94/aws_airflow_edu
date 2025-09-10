@@ -1,0 +1,1 @@
+ airflow users create -u admin -p admin -e admin@admin.com -f admin -l admin -r Admin

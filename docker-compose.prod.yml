@@ -1,0 +1,146 @@
+version: '3.5'
+
+services:
+  posgresdb:
+    image: postgres
+    user: root
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: airflow
+      PGDATA: /var/lib/postgresql/data
+    expose:
+      - 5432
+    volumes:
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/motorsport_etl_framework/motorsport-pgsql_new:/var/lib/postgresql/data
+    ports:
+      - 5444:5432
+    command: postgres -N 1500
+
+  redis:
+      image: redis:5.0
+      command: redis-server
+      user: root
+      expose:
+        - 6379
+
+#Need to be uncommented for the first launch
+  initDb:
+    image: motorsport-airflow
+    depends_on:
+      - posgresdb
+    command: airflow initdb && airflow upgradedb
+
+  webserver:
+    image: motorsport-airflow
+    build:
+       context: .
+       dockerfile: excel.Dockerfile
+    #restart: always
+    user: root
+    depends_on:
+      - posgresdb
+#      - initDb
+      - redis
+    ports:
+      - 8080:8080
+    volumes:
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/airflow_setup:/root/airflow_setup
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/motorsport_etl_framework:/root/motorsport_etl_framework
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/local-parquet_new:/root/data_local
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/airflow-log_new:/root/airflow/logs
+    command: airflow webserver
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  scheduler:
+    image: motorsport-airflow
+    #restart: always
+    depends_on: 
+      - webserver
+    volumes:
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/motorsport_etl_framework:/root/motorsport_etl_framework
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/local-parquet_new:/root/data_local
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/airflow-log_new:/root/airflow/logs
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/airflow_setup:/root/airflow_setup
+    command: airflow scheduler
+
+
+  worker1:
+    image: motorsport-airflow
+    #restart: always
+    build:
+       context: .
+       dockerfile: excel.Dockerfile
+    depends_on:
+      - scheduler
+#      - redis
+#      - webserver
+    expose:
+      - 8793
+    volumes:
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/motorsport_etl_framework:/root/motorsport_etl_framework
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/local-parquet_new:/root/data_local
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/airflow-log_new:/root/airflow/logs
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/airflow_setup:/root/airflow_setup
+    environment:
+      C_FORCE_ROOT: 'true'
+    command: airflow worker
+
+  worker2:
+    image: motorsport-airflow
+    #restart: always
+    build:
+       context: .
+       dockerfile: excel.Dockerfile
+    depends_on:
+      - scheduler
+#      - redis
+#      - webserver
+    expose:
+      - 8793
+    volumes:
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/motorsport_etl_framework:/root/motorsport_etl_framework
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/local-parquet_new:/root/data_local
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/airflow-log_new:/root/airflow/logs
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/airflow_setup:/root/airflow_setup
+    environment:
+      C_FORCE_ROOT: 'true'
+    command: airflow worker
+
+  worker3:
+    image: motorsport-airflow
+    #restart: always
+    build:
+       context: .
+       dockerfile: excel.Dockerfile
+    depends_on:
+      - scheduler
+#      - redis
+#      - webserver
+    expose:
+      - 8793
+    volumes:
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/motorsport_etl_framework:/root/motorsport_etl_framework
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/local-parquet_new:/root/data_local
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/airflow-log_new:/root/airflow/logs
+      - c:/users/admin/desktop/motorsport4/motorsport_etl_framework/airflow_setup:/root/airflow_setup
+    environment:
+      C_FORCE_ROOT: 'true'
+    command: airflow worker
+
+
+volumes:
+  motorsport-pgsql_new:
+    external: true
+    name: motorsport-pgsql_new
+  local-parquet_new:
+    external: true
+    name: local-parquet_new
+  airflow-log_new:
+    external: true
+    name: airflow-log_new
+
